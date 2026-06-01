@@ -1,0 +1,29 @@
+{
+  "name": "sabzi-waala",
+  "version": "1.0.0",
+  "description": "AI-powered vegetable delivery platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend/website",
+    "frontend/mobile",
+    "admin",
+    "vendor",
+    "delivery-app"
+  ],
+  "scripts": {
+    "install-all": "npm install && npm install --workspaces",
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [
+    "vegetable-delivery",
+    "quick-commerce",
+    "ai-powered",
+    "e-commerce"
+  ],
+  "author": "Sabzi Waala Team",
+  "license": "Proprietary"
+}
