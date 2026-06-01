@@ -1,0 +1,146 @@
+// Prisma schema for Sabzi Waala
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String     @id @default(cuid())
+  name          String
+  phone         String     @unique
+  email         String?    @unique
+  password      String
+  avatar        String?
+  role          UserRole   @default(CUSTOMER)
+  addresses     Address[]
+  orders        Order[]
+  rewards       Reward[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([role])
+}
+
+enum UserRole {
+  CUSTOMER
+  VENDOR
+  DELIVERY_AGENT
+  ADMIN
+  STORE_MANAGER
+  SUPPORT
+}
+
+model Category {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  slug        String      @unique
+  description String?
+  image       String?
+  products    Product[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  name          String
+  description   String?
+  image         String
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  vendorId      String
+  basePrice     Float
+  stock         Int
+  unit          String        @default("kg")
+  isActive      Boolean       @default(true)
+  isSeasonal    Boolean       @default(false)
+  orderItems    OrderItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([vendorId])
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id])
+  status           OrderStatus   @default(PENDING)
+  totalPrice       Float
+  deliveryFee      Float         @default(30)
+  discount         Float         @default(0)
+  paymentMethod    String        @default("RAZORPAY")
+  paymentId        String?
+  paymentStatus    PaymentStatus @default(PENDING)
+  deliveryAddress  String
+  deliveryAgentId  String?
+  estimatedTime    Int           @default(30)
+  items            OrderItem[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deliveredAt      DateTime?
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PACKED
+  ASSIGNED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model Reward {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  coins     Int      @default(0)
+  type      String   @default("PURCHASE")
+  orderId   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Coupon {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  discount   Float
+  maxUses    Int
+  used       Int      @default(0)
+  expiresAt  DateTime
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
